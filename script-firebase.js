@@ -1,3 +1,14 @@
+/* ===================== WELCOME SCREEN FIX ===================== */
+window.addEventListener("load", () => {
+  const welcome = document.getElementById("welcome");
+  if (welcome) {
+    setTimeout(() => {
+      welcome.classList.add("hide");
+      setTimeout(() => welcome.remove(), 900);
+    }, 1200); // 1.2 sec baad fade out
+  }
+});
+
 /* ===================== FIREBASE IMPORTS ===================== */
 import { auth, storage } from "./firebase-init.js";
 
