@@ -50,15 +50,25 @@
       <div id="courseButtons" class="course-buttons"></div>
     </section>
 
+    <!-- ================= ADMIN UPLOAD ================= -->
     <section id="adminUpload" class="admin-upload hidden">
       <h4>Admin — Upload Question Paper (demo)</h4>
+
       <form id="uploadForm">
         <select name="course" id="courseSelect"></select>
         <input name="subject" id="subject" placeholder="Subject name" required>
         <input name="year" id="year" type="number" value="">
         <input type="file" id="pdfFile" accept="application/pdf">
+
+        <!-- 🔗 NEW LINK INPUT FOR GOOGLE DRIVE / ANY LINK -->
+        <input
+          type="url"
+          id="paperLink"
+          placeholder="Paste Google Drive / Any public link (optional)">
+        
         <button class="btn">Upload Paper</button>
       </form>
+
       <form id="galleryForm" class="gallery-form">
         <input type="file" id="galleryFile" accept="image/*">
         <button class="btn">Add Gallery Photo</button>
@@ -83,7 +93,6 @@
   </main>
 
   <!-- Firebase SDK and app scripts -->
-  <!-- These use module imports (no npm). After you paste your firebase-config.js file, this will initialize Firebase. -->
   <script type="module" src="firebase-init.js"></script>
   <script src="script-firebase.js" type="module"></script>
 </body>
