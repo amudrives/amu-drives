@@ -3,10 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AMU Drives (Firebase-ready)</title>
+  <title>AMU Drives</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- WELCOME SCREEN -->
   <div id="welcome" class="welcome">
     <h1>Welcome to AMU Drives</h1>
   </div>
@@ -15,85 +17,67 @@
     <div class="container header-inner">
       <div>
         <h2 class="brand">AMU Drives</h2>
-        <p class="tag">Previous Years' Question Papers — Student resource</p>
+        <p class="tag">Previous Years' Question Papers</p>
       </div>
       <div class="actions">
         <button id="adminBtn" class="btn">Admin Login</button>
-        <a href="#contact" class="link">Contact</a>
       </div>
     </div>
+
     <div id="loginBox" class="login-box hidden">
       <form id="loginForm">
-        <input id="email" placeholder="Admin email" type="email" required>
-        <input id="password" placeholder="Password" type="password" required>
-        <div>
-          <button type="submit" class="btn">Login</button>
-          <button type="button" id="cancelLogin" class="btn alt">Cancel</button>
-        </div>
+        <input id="email" type="email" placeholder="Admin email" required>
+        <input id="password" type="password" placeholder="Password" required>
+        <button class="btn">Login</button>
+        <button type="button" id="cancelLogin" class="btn alt">Cancel</button>
       </form>
     </div>
   </header>
 
   <main class="container">
+
+    <!-- GALLERY -->
     <section class="hero">
       <div class="slider" id="slider">
-        <img src="https://res.cloudinary.com/dizkjy9ok/image/upload/v1768904324/amu1_o4msns.png" alt="amu1" class="slide active">
-        <img src="images/amu2.png" alt="amu2" class="slide">
-        <img src="images/amu3.png" alt="amu3" class="slide">
-        <img src="images/amu4.png" alt="amu4" class="slide">
+        <img src="https://res.cloudinary.com/dizkjy9ok/image/upload/v1768904324/amu1_o4msns.png" class="slide active">
       </div>
     </section>
 
+    <!-- COURSES -->
     <section class="controls">
       <h3>Previous Years' Question Papers</h3>
-      <p class="muted">Access and download past papers by choosing your course below.</p>
       <div id="courseButtons" class="course-buttons"></div>
     </section>
 
-    <!-- ================= ADMIN UPLOAD ================= -->
+    <!-- ADMIN PANEL -->
     <section id="adminUpload" class="admin-upload hidden">
-      <h4>Admin — Upload Question Paper (demo)</h4>
+      <h4>Admin Panel</h4>
 
       <form id="uploadForm">
-        <select name="course" id="courseSelect"></select>
-        <input name="subject" id="subject" placeholder="Subject name" required>
-        <input name="year" id="year" type="number" value="">
+        <select id="courseSelect"></select>
+        <input id="subject" placeholder="Subject">
+        <input id="year" type="number">
         <input type="file" id="pdfFile" accept="application/pdf">
-
-        <!-- 🔗 NEW LINK INPUT FOR GOOGLE DRIVE / ANY LINK -->
-        <input
-          type="url"
-          id="paperLink"
-          placeholder="Paste Google Drive / Any public link (optional)">
-        
-        <button class="btn">Upload Paper</button>
-      </form>
-
-      <form id="galleryForm" class="gallery-form">
-        <input type="file" id="galleryFile" accept="image/*">
-        <button class="btn">Add Gallery Photo</button>
+        <input type="url" id="paperLink" placeholder="Google Drive / Any Link">
+        <button class="btn">Add Paper</button>
       </form>
     </section>
 
-    <section id="papersSection">
+    <!-- PAPERS -->
+    <section>
       <div id="papersList" class="papers-list"></div>
     </section>
 
-    <section id="contact" class="contact">
-      <div>
-        <h4>Contact</h4>
-        <div>Admin: amudrives@gmail.com</div>
-        <div class="small">© <span id="yearSpan"></span> AMU Drives — Developed for students by students.</div>
-      </div>
-      <div>
-        <h4>Notes</h4>
-        <div class="small muted">Only admins should upload papers. This demo uses Firebase Authentication and Storage — you must paste your Firebase config into <code>firebase-config.js</code>.</div>
+    <!-- FOOTER -->
+    <section class="contact">
+      <div class="small">
+        © <span id="yearSpan"></span> AMU Drives — Developed for Students by Asif Kamal
       </div>
     </section>
+
   </main>
 
-  <!-- Firebase SDK and app scripts -->
   <script type="module" src="firebase-init.js"></script>
-  <script src="script-firebase.js" type="module"></script>
+  <script type="module" src="script-firebase.js"></script>
 </body>
 </html>
