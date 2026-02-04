@@ -77,25 +77,45 @@ function renderPapers(){
   papersList.innerHTML = '';
   const filtered = currentFilter ? papers.filter(p=>p.course===currentFilter) : papers;
   if(filtered.length===0){
-    const d = document.createElement('div'); d.className='muted'; d.textContent='No papers found for this course.'; papersList.appendChild(d); return;
+    const d = document.createElement('div');
+    d.className='muted';
+    d.textContent='No papers found for this course.';
+    papersList.appendChild(d);
+    return;
   }
   filtered.forEach(p=>{
     const div = document.createElement('div'); div.className='paper';
     const meta = document.createElement('div'); meta.className='meta';
     meta.innerHTML = `<div class="title">${p.subject} — ${p.year}</div><div class="small">Course: ${p.course}</div>`;
     const actions = document.createElement('div'); actions.className='actions';
-    const a = document.createElement('a'); a.href = p.url; a.target='_blank'; a.textContent='Download'; a.className='btn alt';
-    a.style.background='transparent'; a.style.border='1px solid #ddd'; a.style.padding='6px 10px'; a.style.borderRadius='8px';
+    const a = document.createElement('a'); a.href = p.url; a.target='_blank';
+    a.textContent = 'Download';
+    a.className='btn alt';
+    a.style.background='transparent';
+    a.style.border='1px solid #ddd';
+    a.style.padding='6px 10px';
+    a.style.borderRadius='8px';
     actions.appendChild(a);
-    const del = document.createElement('button'); del.textContent='Delete'; del.style.color='red'; del.className='btn alt';
-    del.addEventListener('click', ()=>{ if(!isAdmin) return alert('Only admins can delete papers.'); if(!confirm('Delete this paper?')) return; papers = papers.filter(x=>x.id!==p.id); renderPapers(); });
+
+    const del = document.createElement('button');
+    del.textContent='Delete';
+    del.style.color='red';
+    del.className='btn alt';
+    del.addEventListener('click', ()=>{
+      if(!isAdmin) return alert('Only admins can delete papers.');
+      if(!confirm('Delete this paper?')) return;
+      papers = papers.filter(x=>x.id!==p.id);
+      renderPapers();
+    });
+
     actions.appendChild(del);
-    div.appendChild(meta); div.appendChild(actions);
+    div.appendChild(meta);
+    div.appendChild(actions);
     papersList.appendChild(div);
   });
 }
 
-// admin login UI
+// admin login
 adminBtn.addEventListener('click', ()=>{ loginBox.classList.toggle('hidden'); });
 
 loginForm.addEventListener('submit', async (e)=>{
@@ -115,38 +135,55 @@ loginForm.addEventListener('submit', async (e)=>{
     document.getElementById('adminUpload').classList.remove('hidden');
     alert('Admin mode enabled (Firebase).');
   }catch(err){
-    console.error(err);
     alert('Login failed: ' + err.message);
   }
 });
 
 cancelLogin.addEventListener('click', ()=>{ loginBox.classList.add('hidden'); });
 
-// upload PDF to Firebase Storage
+// =======================
+// PDF OR LINK UPLOAD LOGIC
+// =======================
 uploadForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
   if(!isAdmin) return alert('Only admins can upload papers.');
+
   const course = document.getElementById('courseSelect').value;
   const subject = document.getElementById('subject').value.trim();
   const year = parseInt(document.getElementById('year').value,10);
   const file = document.getElementById('pdfFile').files[0];
-  if(!course||!subject||!year||!file) return alert('Please fill all fields.');
+  const link = document.getElementById('pdfLink').value.trim();
+
+  if(!course || !subject || !year || (!file && !link)){
+    return alert('Please upload PDF OR paste link.');
+  }
+
   try{
-    const storageRef = ref(storage, `papers/${Date.now()}_${file.name}`);
-    const snap = await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(snap.ref);
-    const newPaper = { id:Date.now(), course, subject, year, name:file.name, url };
+    let url = '';
+    let name = '';
+
+    if(file){
+      const storageRef = ref(storage, `papers/${Date.now()}_${file.name}`);
+      const snap = await uploadBytes(storageRef, file);
+      url = await getDownloadURL(snap.ref);
+      name = file.name;
+    }else{
+      url = link;
+      name = 'External Link';
+    }
+
+    const newPaper = { id:Date.now(), course, subject, year, name, url };
     papers.unshift(newPaper);
+
     uploadForm.reset();
     renderPapers();
     alert('Paper uploaded successfully!');
   }catch(err){
-    console.error(err);
     alert('Upload failed: ' + err.message);
   }
 });
 
-// gallery upload to Firebase Storage
+// gallery upload
 galleryForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
   if(!isAdmin) return alert('Only admins can upload gallery images.');
@@ -156,19 +193,25 @@ galleryForm.addEventListener('submit', async (e)=>{
     const storageRef = ref(storage, `gallery/${Date.now()}_${f.name}`);
     const snap = await uploadBytes(storageRef, f);
     const url = await getDownloadURL(snap.ref);
-    const img = document.createElement('img'); img.src = url; img.className='slide';
+    const img = document.createElement('img');
+    img.src = url;
+    img.className='slide';
     document.getElementById('slider').appendChild(img);
     alert('Gallery photo added successfully!');
   }catch(err){
-    console.error(err);
     alert('Upload failed: ' + err.message);
   }
 });
 
-// init UI
+// init
 document.getElementById('year').value = new Date().getFullYear();
 const courseSelect = document.getElementById('courseSelect');
-allCourses.forEach(c=>{ const o = document.createElement('option'); o.value=c; o.textContent=c; courseSelect.appendChild(o); });
+allCourses.forEach(c=>{
+  const o = document.createElement('option');
+  o.value=c;
+  o.textContent=c;
+  courseSelect.appendChild(o);
+});
 renderCourseButtons();
 renderPapers();
 showSlide(0);
