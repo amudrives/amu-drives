@@ -243,3 +243,34 @@ allCourses.forEach(c=>{
 
 renderCourseButtons();
 loadPapers();
+
+
+// LOGIN CODE
+// UPLOAD CODE
+// loadPapers();
+loadPapers();
+
+
+// ========================
+// IMAGE SLIDER
+// ========================
+
+const slides = document.querySelectorAll('.slide');
+let currentSlide = 0;
+
+function showSlide(index) {
+  slides.forEach((slide, i) => {
+    slide.classList.remove('active');
+    if (i === index) {
+      slide.classList.add('active');
+    }
+  });
+}
+
+setInterval(() => {
+  currentSlide++;
+  if (currentSlide >= slides.length) {
+    currentSlide = 0;
+  }
+  showSlide(currentSlide);
+}, 3000);
