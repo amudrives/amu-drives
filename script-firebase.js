@@ -19,15 +19,35 @@ const uploadForm = document.getElementById('uploadForm');
 const papersList = document.getElementById('papersList');
 
 // ========================
-// LOAD PAPERS FROM FIRESTORE
+// 🔥 WELCOME FIX (ALWAYS RUNS)
+// ========================
+window.addEventListener("load", () => {
+  const welcome = document.getElementById("welcome");
+  if (welcome) {
+    setTimeout(() => {
+      welcome.style.opacity = "0";
+      setTimeout(() => {
+        welcome.style.display = "none";
+      }, 500);
+    }, 1000);
+  }
+});
+
+// ========================
+// LOAD PAPERS SAFE MODE
 // ========================
 async function loadPapers(){
-  papers = [];
-  const snapshot = await getDocs(papersCollection);
-  snapshot.forEach((docSnap)=>{
-    papers.push({ id: docSnap.id, ...docSnap.data() });
-  });
-  renderPapers();
+  try{
+    papers = [];
+    const snapshot = await getDocs(papersCollection);
+    snapshot.forEach((docSnap)=>{
+      papers.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderPapers();
+  }catch(err){
+    console.error("Firestore error:", err.message);
+    papersList.innerHTML = "<div class='muted'>Failed to load papers.</div>";
+  }
 }
 
 // ========================
@@ -35,6 +55,12 @@ async function loadPapers(){
 // ========================
 function renderPapers(){
   papersList.innerHTML = '';
+
+  if(papers.length === 0){
+    papersList.innerHTML = "<div class='muted'>No papers uploaded yet.</div>";
+    return;
+  }
+
   papers.forEach(p=>{
     const div = document.createElement('div');
     div.className='paper';
@@ -75,9 +101,9 @@ function renderPapers(){
 }
 
 // ========================
-// UPLOAD (PDF OR LINK)
+// UPLOAD
 // ========================
-uploadForm.addEventListener('submit', async (e)=>{
+uploadForm?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   if(!isAdmin) return alert('Only admins can upload.');
 
@@ -125,7 +151,7 @@ uploadForm.addEventListener('submit', async (e)=>{
 // ========================
 // LOGIN
 // ========================
-document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+document.getElementById('loginForm')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = document.getElementById('email').value.trim().toLowerCase();
   const pass = document.getElementById('password').value;
