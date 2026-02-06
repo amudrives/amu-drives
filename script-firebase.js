@@ -1,152 +1,85 @@
-// Main site logic with Firebase Auth + Storage integration
-import { auth, storage } from "./firebase-init.js";
+import { auth, storage, db } from "./firebase-init.js";
 import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// Data
-const allCourses = [
-  "B.A. (Hons.)","B.Sc. (Hons.)","B.Tech.","B.Arch","BUMS","B.Sc. Nursing","BRTT","BBA",
-  "B.Com. (Hons.)","B.A. LL.B.","B.Ed.","B.P.Ed","BVA","BFA","B.Voc."
-];
+const papersCollection = collection(db, "papers");
 
-let papers = [
-  { id:1, course:"B.Tech.", subject:"Electrical Machines", year:2023, name:"Electrical_Machines_2023.pdf", url:"https://example.com/sample1.pdf"},
-  { id:2, course:"B.Tech.", subject:"Control Systems", year:2022, name:"Control_Systems_2022.pdf", url:"https://example.com/sample2.pdf"},
-  { id:3, course:"B.Sc. (Hons.)", subject:"Mathematics", year:2021, name:"Maths_2021.pdf", url:"https://example.com/sample3.pdf"}
-];
-
+let papers = [];
+let isAdmin = false;
 const DEMO_ADMIN_EMAIL = "amudrives@gmail.com";
 
-// UI elements
-const adminBtn = document.getElementById('adminBtn');
-const loginBox = document.getElementById('loginBox');
-const loginForm = document.getElementById('loginForm');
-const cancelLogin = document.getElementById('cancelLogin');
 const uploadForm = document.getElementById('uploadForm');
-const galleryForm = document.getElementById('galleryForm');
+const papersList = document.getElementById('papersList');
 
-let isAdmin = false;
-
-// slider
-let current = 0;
-const slides = document.querySelectorAll('.slide');
-function showSlide(i){
-  slides.forEach(s=>s.classList.remove('active'));
-  slides[i].classList.add('active');
-}
-setInterval(()=>{ current=(current+1)%slides.length; showSlide(current); },3500);
-
-// welcome fade
-window.addEventListener('load', ()=> {
-  document.getElementById('yearSpan').textContent = new Date().getFullYear();
-  setTimeout(()=> {
-    const w = document.getElementById('welcome');
-    w.style.opacity = '0';
-    setTimeout(()=> w.style.display='none',700);
-  },1100);
-});
-
-// course buttons
-const courseButtons = document.getElementById('courseButtons');
-function renderCourseButtons(){
-  const allBtn = document.createElement('button');
-  allBtn.textContent = 'All Courses';
-  allBtn.classList.add('active');
-  allBtn.addEventListener('click', ()=>{ setFilter(null); setActiveButton(allBtn); });
-  courseButtons.appendChild(allBtn);
-  allCourses.forEach(c=>{
-    const b = document.createElement('button');
-    b.textContent = c;
-    b.addEventListener('click', ()=>{ setFilter(c); setActiveButton(b); });
-    courseButtons.appendChild(b);
+// ========================
+// LOAD PAPERS FROM FIRESTORE
+// ========================
+async function loadPapers(){
+  papers = [];
+  const snapshot = await getDocs(papersCollection);
+  snapshot.forEach((docSnap)=>{
+    papers.push({ id: docSnap.id, ...docSnap.data() });
   });
-}
-function setActiveButton(btn){
-  document.querySelectorAll('#courseButtons button').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-}
-let currentFilter = null;
-function setFilter(course){
-  currentFilter = course;
   renderPapers();
 }
 
-// render papers
-const papersList = document.getElementById('papersList');
+// ========================
+// RENDER
+// ========================
 function renderPapers(){
   papersList.innerHTML = '';
-  const filtered = currentFilter ? papers.filter(p=>p.course===currentFilter) : papers;
-  if(filtered.length===0){
-    const d = document.createElement('div');
-    d.className='muted';
-    d.textContent='No papers found for this course.';
-    papersList.appendChild(d);
-    return;
-  }
-  filtered.forEach(p=>{
-    const div = document.createElement('div'); div.className='paper';
-    const meta = document.createElement('div'); meta.className='meta';
-    meta.innerHTML = `<div class="title">${p.subject} — ${p.year}</div><div class="small">Course: ${p.course}</div>`;
-    const actions = document.createElement('div'); actions.className='actions';
-    const a = document.createElement('a'); a.href = p.url; a.target='_blank';
-    a.textContent = 'Download';
+  papers.forEach(p=>{
+    const div = document.createElement('div');
+    div.className='paper';
+
+    div.innerHTML = `
+      <div class="meta">
+        <div class="title">${p.subject} — ${p.year}</div>
+        <div class="small">Course: ${p.course}</div>
+      </div>
+    `;
+
+    const actions = document.createElement('div');
+    actions.className='actions';
+
+    const a = document.createElement('a');
+    a.href = p.url;
+    a.target='_blank';
+    a.textContent='Download';
     a.className='btn alt';
-    a.style.background='transparent';
-    a.style.border='1px solid #ddd';
-    a.style.padding='6px 10px';
-    a.style.borderRadius='8px';
     actions.appendChild(a);
 
-    const del = document.createElement('button');
-    del.textContent='Delete';
-    del.style.color='red';
-    del.className='btn alt';
-    del.addEventListener('click', ()=>{
-      if(!isAdmin) return alert('Only admins can delete papers.');
-      if(!confirm('Delete this paper?')) return;
-      papers = papers.filter(x=>x.id!==p.id);
-      renderPapers();
-    });
+    if(isAdmin){
+      const del = document.createElement('button');
+      del.textContent='Delete';
+      del.style.color='red';
+      del.className='btn alt';
+      del.onclick = async ()=>{
+        if(!confirm("Delete this paper?")) return;
+        await deleteDoc(doc(db,"papers",p.id));
+        loadPapers();
+      };
+      actions.appendChild(del);
+    }
 
-    actions.appendChild(del);
-    div.appendChild(meta);
     div.appendChild(actions);
     papersList.appendChild(div);
   });
 }
 
-// admin login
-adminBtn.addEventListener('click', ()=>{ loginBox.classList.toggle('hidden'); });
-
-loginForm.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim().toLowerCase();
-  const pass = document.getElementById('password').value;
-  try{
-    const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-    const user = userCredential.user;
-    if(user.email.toLowerCase() !== DEMO_ADMIN_EMAIL){
-      alert('This account is not allowed as admin.');
-      await signOut(auth);
-      return;
-    }
-    isAdmin = true;
-    loginBox.classList.add('hidden');
-    document.getElementById('adminUpload').classList.remove('hidden');
-    alert('Admin mode enabled (Firebase).');
-  }catch(err){
-    alert('Login failed: ' + err.message);
-  }
-});
-
-cancelLogin.addEventListener('click', ()=>{ loginBox.classList.add('hidden'); });
-
-// =======================
-// PDF OR LINK UPLOAD LOGIC
-// =======================
+// ========================
+// UPLOAD (PDF OR LINK)
+// ========================
 uploadForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
-  if(!isAdmin) return alert('Only admins can upload papers.');
+  if(!isAdmin) return alert('Only admins can upload.');
 
   const course = document.getElementById('courseSelect').value;
   const subject = document.getElementById('subject').value.trim();
@@ -155,7 +88,7 @@ uploadForm.addEventListener('submit', async (e)=>{
   const link = document.getElementById('pdfLink').value.trim();
 
   if(!course || !subject || !year || (!file && !link)){
-    return alert('Please upload PDF OR paste link.');
+    return alert('Upload PDF OR paste link.');
   }
 
   try{
@@ -169,49 +102,48 @@ uploadForm.addEventListener('submit', async (e)=>{
       name = file.name;
     }else{
       url = link;
-      name = 'External Link';
+      name = "External Link";
     }
 
-    const newPaper = { id:Date.now(), course, subject, year, name, url };
-    papers.unshift(newPaper);
+    await addDoc(papersCollection,{
+      course,
+      subject,
+      year,
+      name,
+      url,
+      createdAt: Date.now()
+    });
 
     uploadForm.reset();
-    renderPapers();
-    alert('Paper uploaded successfully!');
+    loadPapers();
+    alert("Uploaded successfully!");
   }catch(err){
-    alert('Upload failed: ' + err.message);
+    alert("Upload failed: " + err.message);
   }
 });
 
-// gallery upload
-galleryForm.addEventListener('submit', async (e)=>{
+// ========================
+// LOGIN
+// ========================
+document.getElementById('loginForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
-  if(!isAdmin) return alert('Only admins can upload gallery images.');
-  const f = document.getElementById('galleryFile').files[0];
-  if(!f) return alert('Please select an image.');
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const pass = document.getElementById('password').value;
+
   try{
-    const storageRef = ref(storage, `gallery/${Date.now()}_${f.name}`);
-    const snap = await uploadBytes(storageRef, f);
-    const url = await getDownloadURL(snap.ref);
-    const img = document.createElement('img');
-    img.src = url;
-    img.className='slide';
-    document.getElementById('slider').appendChild(img);
-    alert('Gallery photo added successfully!');
+    const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+    if(userCredential.user.email.toLowerCase() !== DEMO_ADMIN_EMAIL){
+      alert("Not allowed.");
+      await signOut(auth);
+      return;
+    }
+    isAdmin = true;
+    document.getElementById('adminUpload').classList.remove('hidden');
+    alert("Admin mode enabled");
   }catch(err){
-    alert('Upload failed: ' + err.message);
+    alert("Login failed: " + err.message);
   }
 });
 
-// init
-document.getElementById('year').value = new Date().getFullYear();
-const courseSelect = document.getElementById('courseSelect');
-allCourses.forEach(c=>{
-  const o = document.createElement('option');
-  o.value=c;
-  o.textContent=c;
-  courseSelect.appendChild(o);
-});
-renderCourseButtons();
-renderPapers();
-showSlide(0);
+// ========================
+loadPapers();
