@@ -18,10 +18,12 @@
         <p class="tag">Previous Years' Question Papers — Student resource</p>
       </div>
       <div class="actions">
+        <button id="darkToggle" class="btn alt">🌙</button>
         <button id="adminBtn" class="btn">Admin Login</button>
         <a href="#contact" class="link">Contact</a>
       </div>
     </div>
+
     <div id="loginBox" class="login-box hidden">
       <form id="loginForm">
         <input id="email" placeholder="Admin email" type="email" required>
@@ -35,23 +37,56 @@
   </header>
 
   <main class="container">
+
+    <!-- FEATURE SECTION WITH DROPDOWN -->
     <section class="feature-border">
-  <div class="feature-scroll">
+      <div class="feature-scroll">
 
-    <button class="feature-btn">Entrance Question Paper</button>
-    <button class="feature-btn">Study Materials</button>
-    <button class="feature-btn">Board Question Paper</button>
-    <button class="feature-btn">Semester Question Paper</button>
+        <div class="feature-item">
+          <button class="feature-btn">Entrance Question Paper</button>
+          <div class="dropdown-content">
+            <div>UG</div>
+            <div>PG</div>
+            <div>Diploma</div>
+          </div>
+        </div>
 
-  </div>
-</section>
+        <div class="feature-item">
+          <button class="feature-btn">Study Materials</button>
+          <div class="dropdown-content">
+            <div>Notes</div>
+            <div>Syllabus</div>
+            <div>Important Questions</div>
+          </div>
+        </div>
 
+        <div class="feature-item">
+          <button class="feature-btn">Board Question Paper</button>
+          <div class="dropdown-content">
+            <div>Class 10</div>
+            <div>Class 12</div>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <button class="feature-btn">Semester Question Paper</button>
+          <div class="dropdown-content">
+            <div>1st Semester</div>
+            <div>2nd Semester</div>
+            <div>3rd Semester</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- HERO SLIDER FIXED -->
     <section class="hero">
       <div class="slider" id="slider">
-        <img src="https://res.cloudinary.com/dizkjy9ok/image/upload/v1768904324/amu1_o4msns.png" alt="amu1" class="slide active">
-        <img src="https://res.cloudinary.com/dizkjy9ok/image/upload/v1770389135/amu3_asqfm6.png" alt="amu2" class="slide active">
-        <img src="images/amu3.png" alt="amu3" class="slide">
-        <img src="images/amu4.png" alt="amu4" class="slide">
+        <img src="https://res.cloudinary.com/dizkjy9ok/image/upload/v1768904324/amu1_o4msns.png" class="slide active">
+        <img src="https://res.cloudinary.com/dizkjy9ok/image/upload/v1770389135/amu3_asqfm6.png" class="slide">
+        <img src="images/amu3.png" class="slide">
+        <img src="images/amu4.png" class="slide">
       </div>
     </section>
 
@@ -66,22 +101,15 @@
       <form id="uploadForm">
         <select name="course" id="courseSelect"></select>
         <input name="subject" id="subject" placeholder="Subject name" required>
-        <input name="year" id="year" type="number" value="">
+        <input name="year" id="year" type="number">
         <input type="file" id="pdfFile" accept="application/pdf">
 
-<div class="or-text">OR</div>
+        <div class="or-text">OR</div>
 
-<input
-  type="url"
-  id="pdfLink"
-  placeholder="Paste question paper link (Google Drive / PDF URL)"
->
+        <input type="url" id="pdfLink"
+               placeholder="Paste question paper link (Google Drive / PDF URL)">
 
         <button class="btn">Upload Paper</button>
-      </form>
-      <form id="galleryForm" class="gallery-form">
-        <input type="file" id="galleryFile" accept="image/*">
-        <button class="btn">Add Gallery Photo</button>
       </form>
     </section>
 
@@ -89,22 +117,35 @@
       <div id="papersList" class="papers-list"></div>
     </section>
 
-    <section id="contact" class="contact">
-      <div>
-        <h4>Contact</h4>
-        <div>Admin: amudrives@gmail.com</div>
-        <div class="small">© <span id="yearSpan"></span> AMU Drives — Developed for students by students.</div>
-      </div>
-      <div>
-        <h4>Notes</h4>
-        <div class="small muted">Only admins should upload papers. This demo uses Firebase Authentication and Storage — you must paste your Firebase config into <code>firebase-config.js</code>.</div>
-      </div>
-    </section>
   </main>
 
-  <!-- Firebase SDK and app scripts -->
-  <!-- These use module imports (no npm). After you paste your firebase-config.js file, this will initialize Firebase. -->
   <script type="module" src="firebase-init.js"></script>
   <script src="script-firebase.js" type="module"></script>
+
+  <!-- DROPDOWN + DARK MODE SCRIPT -->
+  <script>
+    // Dropdown toggle
+    document.querySelectorAll(".feature-btn").forEach(btn=>{
+      btn.addEventListener("click", function(){
+        const parent = this.parentElement;
+        document.querySelectorAll(".feature-item")
+          .forEach(item=> item.classList.remove("active"));
+        parent.classList.toggle("active");
+      });
+    });
+
+    // Dark mode
+    const toggle = document.getElementById("darkToggle");
+    toggle.addEventListener("click", ()=>{
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode",
+        document.body.classList.contains("dark"));
+    });
+
+    if(localStorage.getItem("darkMode") === "true"){
+      document.body.classList.add("dark");
+    }
+  </script>
+
 </body>
 </html>
