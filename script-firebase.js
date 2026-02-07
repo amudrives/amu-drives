@@ -245,10 +245,7 @@ renderCourseButtons();
 loadPapers();
 
 
-// LOGIN CODE
-// UPLOAD CODE
-// loadPapers();
-loadPapers();
+
 
 
 // ========================
